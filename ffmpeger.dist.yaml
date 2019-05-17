@@ -1,0 +1,2 @@
+nats:
+  connection_string: "nats://127.0.0.1:14222"

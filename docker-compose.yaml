@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  nats:
+    image: "nats:1.4.1"
+    command: "-c gnatsd.conf -DV"
+    ports:
+      # Clients.
+      - "14222:4222"
+      # Clustering.
+      - "16222:6222"
+      # HTTP management.
+      - "18222:8222"
