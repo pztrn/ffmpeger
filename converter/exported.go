@@ -140,6 +140,7 @@ func startReally() {
 		// queue, clear it and re-add if queue items still be there.
 		tasksQueue := make([]*Task, 0, tasksCount)
 		tasksQueue = append(tasksQueue, tasks...)
+		tasks = make([]*Task, 0, 64)
 		tasksMutex.Unlock()
 
 		// Get tasks list to launch.
@@ -151,6 +152,7 @@ func startReally() {
 		}
 		// Remove tasks that will be launched now.
 		tasksQueue = tasksQueue[tasksToRunCount:]
+		log.Println("Tasks count that will be returned to main queue:", len(tasksQueue))
 		// Re-add remaining tasks to queue.
 		// Note: if another task was added to queue while we compose
 		// our tasks list to launch - it will be executed BEFORE remaining
