@@ -2,6 +2,7 @@ package config
 
 import (
 	// stdlib
+	"errors"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -22,13 +23,15 @@ var (
 func Initialize() {
 	log.Println("Initializing configuration...")
 
-	flag.StringVar(&configPathRaw, "conf", "", "Path to configuration file, should be absolute.")
+	flag.StringVar(&configPathRaw, "conf", "", "Path to configuration file.")
+
+	Cfg = &Config{}
 }
 
 // Load loads configuration into memory and parses it into Config struct.
-func Load() {
+func Load() error {
 	if configPathRaw == "" {
-		log.Fatalln("No configuration file path defined! See '-h'!")
+		return errors.New("No configuration file path defined! See '-h'!")
 	}
 
 	log.Println("Loading configuration from file:", configPathRaw)
@@ -37,7 +40,8 @@ func Load() {
 	if strings.Contains(configPathRaw, "~") {
 		u, err := user.Current()
 		if err != nil {
-			log.Fatalln("Failed to get current user's data:", err.Error())
+			// Well, I don't know how to test this.
+			return errors.New("Failed to get current user's data: " + err.Error())
 		}
 
 		configPathRaw = strings.Replace(configPathRaw, "~", u.HomeDir, 1)
@@ -46,21 +50,22 @@ func Load() {
 	// Get absolute path to configuration file.
 	configPath, err := filepath.Abs(configPathRaw)
 	if err != nil {
-		log.Fatalln("Failed to get real configuration file path:", err.Error())
+		// Can't think of situation when it's testable.
+		return errors.New("Failed to get real configuration file path:" + err.Error())
 	}
 
 	// Read it.
 	configFileData, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Fatalln("Failed to load configuration file data:", err.Error())
+		return errors.New("Failed to load configuration file data:" + err.Error())
 	}
 
 	// Parse it.
-	Cfg = &Config{}
 	err1 := yaml.Unmarshal(configFileData, Cfg)
 	if err1 != nil {
-		log.Fatalln("Failed to parse configuration file:", err1.Error())
+		return errors.New("Failed to parse configuration file:" + err1.Error())
 	}
 
 	log.Printf("Configuration file parsed: %+v\n", Cfg)
+	return nil
 }

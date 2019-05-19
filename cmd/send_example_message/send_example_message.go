@@ -45,7 +45,10 @@ func main() {
 		log.Fatalln("Failed to get absolute path for output filename:", err.Error())
 	}
 
-	config.Load()
+	err = config.Load()
+	if err != nil {
+		log.Fatalln("Failed to load configuration file:", err.Error())
+	}
 
 	nc, err := nats.Connect(config.Cfg.NATS.ConnectionString)
 	if err != nil {

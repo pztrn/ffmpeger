@@ -2,6 +2,7 @@ package nats
 
 import (
 	// stdlib
+	"errors"
 	"log"
 	"sync"
 
@@ -51,26 +52,26 @@ func messageHandler(msg *nats.Msg) {
 }
 
 // Shutdown unsubscribes from topic and disconnects from NATS.
-func Shutdown() {
+func Shutdown() error {
 	log.Println("Unsuscribing from NATS topic...")
 	err := natsSubscription.Unsubscribe()
 	if err != nil {
-		log.Println("ERROR unsubscribing", Topic, "topic:", err.Error())
+		return errors.New("ERROR unsubscribing " + Topic + " topic: " + err.Error())
 	}
 
 	if natsConn != nil {
 		log.Println("Closing connection to NATS...")
 		natsConn.Close()
-	} else {
-		log.Println("Connection to NATS wasn't established")
 	}
+
+	return nil
 }
 
 // StartListening connects to NATS and starts to listen for messages.
-func StartListening() {
+func StartListening() error {
 	nc, err := nats.Connect(config.Cfg.NATS.ConnectionString)
 	if err != nil {
-		log.Fatalln("Failed to connect to NATS:", err.Error())
+		return errors.New("Failed to connect to NATS:" + err.Error())
 	}
 
 	natsConn = nc
@@ -81,7 +82,10 @@ func StartListening() {
 	// ffmpeger will receive this message!
 	sub, err1 := nc.Subscribe(Topic, messageHandler)
 	if err1 != nil {
-		log.Fatalln("Failed to subscribe to", Topic, "topic:", err1.Error())
+		return errors.New("Failed to subscribe to " + Topic + " topic: " + err1.Error())
 	}
 	natsSubscription = sub
+	log.Println("Subscribed to topic", Topic)
+
+	return nil
 }

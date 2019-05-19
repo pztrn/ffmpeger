@@ -23,8 +23,14 @@ func main() {
 
 	flag.Parse()
 
-	config.Load()
-	nats.StartListening()
+	err := config.Load()
+	if err != nil {
+		log.Fatalln("Failed to load configuration file:", err.Error())
+	}
+	err1 := nats.StartListening()
+	if err1 != nil {
+		log.Fatalln("Failed to establish connection to NATS:", err1.Error())
+	}
 	converter.Start()
 
 	// CTRL+C handler.
